@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "DevLab Portal Operations"
+    url: "https://github.com/yuvadevlab/devlab-portal"
+    about: "For runtime issues with the central control plane."
+  - name: "Security & Vulnerability Reporting"
+    url: "mailto:yuva.devlab@gmail.com"
+    about: "Please report security vulnerabilities privately."

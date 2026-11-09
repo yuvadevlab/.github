@@ -1,0 +1,58 @@
+name: "Reusable CI Pipeline"
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      setup-python:
+        required: false
+        type: boolean
+        default: false
+      run-tests:
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  validate:
+    name: "Validate & Build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup DevLab Environment
+        uses: yuvadevlab/.github/.github/actions/setup-devlab-env@main
+        with:
+          node-version: ${{ inputs.node-version }}
+          setup-python: ${{ inputs.setup-python }}
+
+      - name: Install Dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Formatting
+        shell: bash
+        run: pnpm run format:check
+
+      - name: Lint
+        shell: bash
+        run: pnpm run lint
+
+      - name: Type Check
+        shell: bash
+        run: pnpm run typecheck
+
+      - name: Run Tests
+        if: inputs.run-tests
+        shell: bash
+        run: pnpm run test
+
+      - name: Build
+        shell: bash
+        run: pnpm run build
