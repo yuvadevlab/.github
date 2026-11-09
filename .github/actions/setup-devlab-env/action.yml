@@ -1,0 +1,58 @@
+name: "Setup DevLab Environment"
+description: "Universal setup action configuring Node, pnpm, uv, and build caching across all Yuva DevLab repositories"
+inputs:
+  node-version:
+    description: "Node.js version to install"
+    required: false
+    default: "22"
+  pnpm-version:
+    description: "pnpm version to install"
+    required: false
+    default: "12.5.1"
+  setup-python:
+    description: "Whether to install uv and Python tooling"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm-version }}
+        run_install: false
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: "pnpm"
+
+    - name: Get pnpm store directory
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+    - name: Setup pnpm cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+
+    - name: Setup uv (Python)
+      if: inputs.setup-python == 'true'
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+        github-token: ${{ github.token }}
+
+    - name: Cache Turborepo
+      uses: actions/cache@v4
+      with:
+        path: .turbo
+        key: ${{ runner.os }}-turbo-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-turbo-
