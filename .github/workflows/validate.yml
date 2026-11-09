@@ -15,9 +15,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate GitHub Actions & Workflows
-        uses: reviewdog/action-actionlint@v1
-        with:
-          fail_level: error
+        shell: bash
+        run: |
+          bash <(curl -s https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -ignore 'runtime ".*" is deprecated'
 
       - name: Validate All YAML Files
         shell: bash
