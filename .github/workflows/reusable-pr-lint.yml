@@ -22,9 +22,10 @@ jobs:
       - name: Validate Branch Name
         if: github.event_name == 'pull_request'
         shell: bash
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+          PATTERN: ${{ inputs.branch-pattern }}
         run: |
-          BRANCH_NAME="${{ github.head_ref }}"
-          PATTERN="${{ inputs.branch-pattern }}"
           echo "Checking branch name: '$BRANCH_NAME'"
           if [[ ! "$BRANCH_NAME" =~ $PATTERN ]]; then
             echo "::error title=Invalid Branch Name::Branch '$BRANCH_NAME' does not match pattern: $PATTERN"
@@ -43,8 +44,10 @@ jobs:
       - name: Validate PR Title & Commits
         if: inputs.require-conventional-commits && github.event_name == 'pull_request'
         shell: bash
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
           COMMIT_PATTERN='^(feat|fix|refactor|perf|chore|docs|test|ci|hotfix|revert)(\([a-z0-9_-]+\))?!?: .+$'
 
           echo "Checking PR Title: '$PR_TITLE'"
@@ -57,7 +60,7 @@ jobs:
 
           echo "Checking commit messages in PR..."
           FAILED=0
-          COMMITS=$(git log --no-merges --format="%s" origin/${{ github.base_ref }}..HEAD)
+          COMMITS=$(git log --no-merges --format="%s" "origin/$BASE_REF..HEAD")
 
           while IFS= read -r line; do
             if [ -z "$line" ]; then
