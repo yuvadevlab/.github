@@ -28,13 +28,13 @@
 │                                    │                                   │
 │   SPECIALIZED APPLICATIONS         │                                   │
 │   ┌───────────────┬────────────────┴┬───────────────┬──────────────┐   │
-│   │     FinAI     │   OrchestrAI    │  DevLab Logs  │   VitalAI    │   │
-│   │ (:3001/:4001) │  (:3002/:4002)  │ (:3003/:4003) │(:3004/:4004) │   │
-│   │ Finance &     │ Multi-Agent     │ Centralized   │ Health &     │   │
-│   │ Analytics     │ Orchestration   │ Telemetry     │ Analytics    │   │
+│   │     FinAI     │   OrchestrAI    │  DevLab Logs  │  KnowledgeAI │   │
+│   │ (:3001/:4001) │  (:3005/:4002)  │ (:3020/:4003) │(:3004/:4004) │   │
+│   │ Finance &     │ Multi-Agent     │ Centralized   │ Enterprise   │   │
+│   │ Analytics     │ Orchestration   │ Telemetry     │ Knowledge    │   │
 │   └───────────────┴─────────────────┴───────────────┴──────────────┘   │
 │   ┌────────────────────────────────┬───────────────────────────────┐   │
-│   │       devlab-guard (:8000)     │      incidentai (:8085)       │   │
+│   │       devlab-guard (:8000)     │      incident-ai (:8085)      │   │
 │   │   Security Guardrails & AI Gate│   Automated Incident Triage   │   │
 │   └────────────────────────────────┴───────────────────────────────┘   │
 │                                                                        │
@@ -63,12 +63,12 @@
 | -------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------- | ----------------- |
 | [`devlab-portal`](https://github.com/yuvadevlab/devlab-portal) | Central Control Plane & Process Orchestrator      | Next.js 15, NestJS 11, Prisma, Redis, Socket.IO | `:3000` / `:4000` |
 | [`devlab-shared`](https://github.com/yuvadevlab/devlab-shared) | Core Design System, Tokens, Supervisor & SDKs     | TypeScript, pnpm, tsup, W3C Layers              | —                 |
-| [`finai`](https://github.com/yuvadevlab/finai)                 | Intelligent Financial Analytics & Ledger Platform | Next.js, NestJS, Prisma, PostgreSQL             | `:3001` / `:4001` |
-| [`orchestrai`](https://github.com/yuvadevlab/orchestrai)       | Multi-Agent Orchestration & Workflow Automation   | Next.js, NestJS, Temporal/Queues                | `:3002` / `:4002` |
-| [`devlab-logs`](https://github.com/yuvadevlab/devlab-logs)     | Distributed Log Aggregation & Observability       | Next.js, NestJS, ClickHouse/PostgreSQL          | `:3003` / `:4003` |
-| [`vitalai`](https://github.com/yuvadevlab/vitalai)             | Healthcare Telemetry & Predictive Analytics       | Next.js, FastAPI, Python, PostgreSQL            | `:3004` / `:4004` |
+| [`fin-ai`](https://github.com/yuvadevlab/fin-ai)                 | Intelligent Financial Analytics & Ledger Platform | Next.js 15, NestJS 11, Prisma, PostgreSQL             | `:3001` / `:4001` |
+| [`orchestr-ai`](https://github.com/yuvadevlab/orchestr-ai)       | Multi-Agent Orchestration & Workflow Automation   | Next.js 15, Fastify, gRPC, Redis, BullMQ        | `:3005` / `:4002` |
+| [`devlab-logs`](https://github.com/yuvadevlab/devlab-logs)     | Distributed Log Aggregation & Observability       | Next.js, NestJS, ClickHouse/PostgreSQL          | `:3020` / `:4003` |
+| [`knowledg-ai`](https://github.com/yuvadevlab/knowledg-ai)     | Enterprise Semantic Knowledge (Planned)           | Next.js, FastAPI, pgvector                      | `:3004` / `:4004` |
 | [`devlab-guard`](https://github.com/yuvadevlab/devlab-guard)   | Security Guardrails & Policy Enforcement          | Python, FastAPI                                 | `:8000`           |
-| [`incidentai`](https://github.com/yuvadevlab/incidentai)       | Automated Incident Response & Root Cause Analysis | Python, FastAPI                                 | `:8085`           |
+| [`incident-ai`](https://github.com/yuvadevlab/incident-ai)       | Automated Incident Response & Root Cause Analysis | TypeScript, FSM, Docker Sandboxing              | `:8085`           |
 | [`.github`](https://github.com/yuvadevlab/.github)             | Central Workflows, Reusable Actions & Templates   | GitHub Actions                                  | —                 |
 
 ---

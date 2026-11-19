@@ -37,6 +37,18 @@ Master instructions and ecosystem invariants for AI agents (Antigravity, Claude 
    - Allowed types: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `ci`, `chore`, `revert`.
    - Imperative mood, lowercase first letter, no period at end, under 72 characters.
 
+8. **Enums Over Raw Unions & Centralized Keys**:
+   - Prefer TypeScript `enum`s or `as const` object dictionaries with mapped types over raw string literal unions (`"dev" | "prod"`).
+   - Never hardcode raw URL search parameters, route paths, HTTP headers, or storage keys; declare them centrally and construct URLs with `URLSearchParams`.
+
+9. **Shared NPM Packages Environment Isolation**:
+   - Shared NPM packages (`@yuva-devlab/*`) must NEVER read `process.env` directly. Consumers pass parameters explicitly.
+
+10. **Semantic Component Architecture & 90/10 Hybrid Styling Standard**:
+   - UI components must declare purpose-revealing semantic classes (`.dl-card`, `.app-card`, `.dl-table`) in domain-scoped modular stylesheets (`< 200 lines`, strictly `< 250 lines`) under `@layer dl-components`.
+   - Multi-class utility soup in JSX (`className="class-1 class-2 class-3..."`) is strictly prohibited; utilities are reserved exclusively for macro layout orchestration (10% glue).
+   - Variations and themes must be parameterized via CSS variables mapped to `@yuva-devlab/tokens`.
+
 ---
 
 ## 2. Organization Repositories Reference
@@ -45,12 +57,12 @@ Master instructions and ecosystem invariants for AI agents (Antigravity, Claude 
 | -------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------- |
 | [`devlab-portal`](https://github.com/yuvadevlab/devlab-portal) | TypeScript (Next.js 15, NestJS 11, Prisma)     | Control Plane & Process Orchestration |
 | [`devlab-shared`](https://github.com/yuvadevlab/devlab-shared) | TypeScript (Design System, Tokens, Supervisor) | Core Shared Libraries & Packages      |
-| [`finai`](https://github.com/yuvadevlab/finai)                 | TypeScript (Next.js, NestJS, Prisma)           | Financial Intelligence & Analytics    |
-| [`orchestrai`](https://github.com/yuvadevlab/orchestrai)       | TypeScript (Next.js, NestJS, Temporal)         | Multi-Agent Orchestration             |
-| [`devlab-logs`](https://github.com/yuvadevlab/devlab-logs)     | TypeScript (Next.js, NestJS, ClickHouse)       | Centralized Telemetry & Observability |
-| [`vitalai`](https://github.com/yuvadevlab/vitalai)             | TypeScript + Python (FastAPI)                  | Healthcare Analytics & Telemetry      |
-| [`devlab-guard`](https://github.com/yuvadevlab/devlab-guard)   | Python (FastAPI, LangChain)                    | AI Security Guardrails                |
-| [`incidentai`](https://github.com/yuvadevlab/incidentai)       | Python (FastAPI)                               | Automated Incident Triage             |
+| [`fin-ai`](https://github.com/yuvadevlab/fin-ai)                 | TypeScript (Next.js, NestJS, Prisma)           | Financial Intelligence & Analytics    |
+| [`orchestr-ai`](https://github.com/yuvadevlab/orchestr-ai)       | TypeScript (Next.js, Fastify, gRPC)            | Multi-Agent Orchestration Swarm       |
+| [`devlab-logs`](https://github.com/yuvadevlab/devlab-logs)     | TypeScript (Next.js, Express, pgvector)        | Centralized Telemetry & Observability |
+| [`knowledg-ai`](https://github.com/yuvadevlab/knowledg-ai)     | TypeScript + Python (FastAPI) (Planned)        | Enterprise Knowledge & Semantic RAG   |
+| [`devlab-guard`](https://github.com/yuvadevlab/devlab-guard)   | Python (FastAPI, Tree-sitter)                  | AI Security Guardrails                |
+| [`incident-ai`](https://github.com/yuvadevlab/incident-ai)       | TypeScript (FSM, Docker Sandboxing)            | Automated SRE Incident Triage         |
 | [`devlab-ops`](https://github.com/yuvadevlab/devlab-ops)       | Go / Shell / Docker                            | Production Host & Worktree CLI        |
 | [`.github`](https://github.com/yuvadevlab/.github)             | GitHub Actions, YAML, Markdown                 | Org Defaults, Workflows & Templates   |
 

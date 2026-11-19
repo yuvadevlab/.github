@@ -7,7 +7,7 @@ on:
         description: 'Regex pattern for allowed branch names'
         required: false
         type: string
-        default: '^(feat|fix|refactor|perf|chore|docs|test|ci|hotfix)\/[a-z0-9-]+$'
+        default: '^(feat|fix|refactor|perf|chore|docs|test|ci|hotfix|sync)\/[a-z0-9-]+$|^dev$'
       require-conventional-commits:
         description: 'Whether to validate PR commits against Conventional Commits'
         required: false
@@ -29,8 +29,8 @@ jobs:
           echo "Checking branch name: '$BRANCH_NAME'"
           if [[ ! "$BRANCH_NAME" =~ $PATTERN ]]; then
             echo "::error title=Invalid Branch Name::Branch '$BRANCH_NAME' does not match pattern: $PATTERN"
-            echo "Expected: <type>/<description> (e.g. feat/supervisor-engine, fix/port-collision)"
-            echo "Allowed types: feat, fix, refactor, perf, chore, docs, test, ci, hotfix"
+            echo "Expected: <type>/<description> (e.g. feat/supervisor-engine, fix/port-collision, sync/main-to-dev) or 'dev'"
+            echo "Allowed types: feat, fix, refactor, perf, chore, docs, test, ci, hotfix, sync"
             exit 1
           fi
           echo "✓ Branch name is valid."
