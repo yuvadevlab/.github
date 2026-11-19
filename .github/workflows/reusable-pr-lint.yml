@@ -7,7 +7,7 @@ on:
         description: 'Regex pattern for allowed branch names'
         required: false
         type: string
-        default: '^(feat|fix|refactor|perf|chore|docs|test|ci|hotfix|sync)\/[a-z0-9-]+$|^dev$'
+        default: '^(feat|fix|refactor|perf|chore|docs|test|ci|hotfix|sync|changeset-release)\/[a-z0-9_.-]+$|^dependabot\/.+$|^dev$'
       require-conventional-commits:
         description: 'Whether to validate PR commits against Conventional Commits'
         required: false
@@ -30,7 +30,7 @@ jobs:
           if [[ ! "$BRANCH_NAME" =~ $PATTERN ]]; then
             echo "::error title=Invalid Branch Name::Branch '$BRANCH_NAME' does not match pattern: $PATTERN"
             echo "Expected: <type>/<description> (e.g. feat/supervisor-engine, fix/port-collision, sync/main-to-dev) or 'dev'"
-            echo "Allowed types: feat, fix, refactor, perf, chore, docs, test, ci, hotfix, sync"
+            echo "Allowed types: feat, fix, refactor, perf, chore, docs, test, ci, hotfix, sync, changeset-release, dependabot"
             exit 1
           fi
           echo "✓ Branch name is valid."
@@ -48,7 +48,7 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          COMMIT_PATTERN='^(feat|fix|refactor|perf|chore|docs|test|ci|hotfix|revert)(\([a-z0-9_-]+\))?!?: .+$'
+          COMMIT_PATTERN='^(feat|fix|refactor|perf|chore|docs|test|ci|hotfix|revert|build|style)(\([a-z0-9_-]+\))?!?: .+$|^Version Packages$'
 
           echo "Checking PR Title: '$PR_TITLE'"
           if [[ ! "$PR_TITLE" =~ $COMMIT_PATTERN ]]; then
