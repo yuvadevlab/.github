@@ -37,7 +37,7 @@ jobs:
 
       - name: Checkout Code
         if: inputs.require-conventional-commits && github.event_name == 'pull_request'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
