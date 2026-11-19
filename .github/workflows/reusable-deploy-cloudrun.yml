@@ -115,7 +115,7 @@ jobs:
       contents: read
       id-token: write
     outputs:
-      image-tag: ${{ steps.build-push.outputs.image-tag }}
+      image-tag: ${{ steps.meta.outputs.tag }}
       service-url: ${{ steps.deploy-run.outputs.url }}
     steps:
       - name: Checkout Code
@@ -144,8 +144,8 @@ jobs:
           IMAGE_BASE="${{ inputs.registry-host }}/${{ inputs.project-id }}/${{ inputs.repository }}/${{ inputs.service-name }}"
           IMAGE_TAG="${IMAGE_BASE}:${{ github.sha }}"
           IMAGE_LATEST="${IMAGE_BASE}:latest"
-          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
-          echo "latest=${IMAGE_LATEST}" >> $GITHUB_OUTPUT
+          echo "tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "latest=${IMAGE_LATEST}" >> "$GITHUB_OUTPUT"
 
       - name: Build and Push Container with Buildx
         id: build-push
@@ -217,5 +217,5 @@ jobs:
 
           # Extract service URL
           SERVICE_URL=$(gcloud run services describe "${{ inputs.service-name }}" --region="${{ inputs.region }}" --format="value(status.url)")
-          echo "url=${SERVICE_URL}" >> $GITHUB_OUTPUT
+          echo "url=${SERVICE_URL}" >> "$GITHUB_OUTPUT"
           echo "Successfully deployed to: ${SERVICE_URL}"
