@@ -49,6 +49,11 @@ runs:
         enable-cache: true
         github-token: ${{ github.token }}
 
+    - name: Install Ruff
+      if: inputs.setup-python == 'true'
+      shell: bash
+      run: uv tool install ruff
+
     - name: Cache Turborepo
       uses: actions/cache@v4
       with:
