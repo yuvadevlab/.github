@@ -1,0 +1,221 @@
+name: "Reusable Cloud Run Deployment"
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: "Cloud Run service identifier"
+        required: true
+        type: string
+      dockerfile:
+        description: "Path to Dockerfile"
+        required: false
+        type: string
+        default: "Dockerfile.api"
+      context:
+        description: "Docker build context directory"
+        required: false
+        type: string
+        default: "."
+      region:
+        description: "Google Cloud target region"
+        required: false
+        type: string
+        default: "asia-southeast1"
+      port:
+        description: "Container listener port"
+        required: false
+        type: number
+        default: 4000
+      memory:
+        description: "Memory limit allocated to the container (e.g. 512Mi, 1Gi, 2Gi)"
+        required: false
+        type: string
+        default: "512Mi"
+      cpu:
+        description: "CPU limit allocated to the container (e.g. 1, 2)"
+        required: false
+        type: string
+        default: "1"
+      min-instances:
+        description: "Minimum running instances (0 for scale-to-zero, 1 for warm)"
+        required: false
+        type: number
+        default: 0
+      max-instances:
+        description: "Maximum scale ceiling instances"
+        required: false
+        type: number
+        default: 2
+      concurrency:
+        description: "Maximum concurrent requests per instance"
+        required: false
+        type: number
+        default: 80
+      cpu-boost:
+        description: "Enable CPU boost during container startup"
+        required: false
+        type: boolean
+        default: true
+      cpu-throttling:
+        description: "Throttle CPU when container is idle"
+        required: false
+        type: boolean
+        default: true
+      allow-unauthenticated:
+        description: "Allow unauthenticated ingress traffic"
+        required: false
+        type: boolean
+        default: true
+      env-vars:
+        description: "Newline or delimiter-separated environment variables KEY=VALUE"
+        required: false
+        type: string
+        default: ""
+      secrets:
+        description: "Newline or comma-separated Secret Manager bindings ENV_VAR=SECRET_NAME:latest"
+        required: false
+        type: string
+        default: ""
+      registry-host:
+        description: "Artifact Registry host domain"
+        required: false
+        type: string
+        default: "asia-southeast1-docker.pkg.dev"
+      project-id:
+        description: "Google Cloud Project ID"
+        required: false
+        type: string
+        default: "project-cbe181a6-46e7-4c7c-8e8"
+      repository:
+        description: "Artifact Registry repository name"
+        required: false
+        type: string
+        default: "cloud-run-source-deploy"
+    secrets:
+      WIF_PROVIDER:
+        description: "Workload Identity Federation Provider resource name"
+        required: true
+      WIF_SERVICE_ACCOUNT:
+        description: "Target GCP Service Account email"
+        required: true
+    outputs:
+      image-tag:
+        description: "The built container image tag in Artifact Registry"
+        value: ${{ jobs.deploy.outputs.image-tag }}
+      service-url:
+        description: "The deployed Cloud Run service URL"
+        value: ${{ jobs.deploy.outputs.service-url }}
+
+jobs:
+  deploy:
+    name: "Deploy to Cloud Run"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      image-tag: ${{ steps.build-push.outputs.image-tag }}
+      service-url: ${{ steps.deploy-run.outputs.url }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud via WIF
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Google Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ inputs.registry-host }} --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute Image Metadata
+        id: meta
+        run: |
+          IMAGE_BASE="${{ inputs.registry-host }}/${{ inputs.project-id }}/${{ inputs.repository }}/${{ inputs.service-name }}"
+          IMAGE_TAG="${IMAGE_BASE}:${{ github.sha }}"
+          IMAGE_LATEST="${IMAGE_BASE}:latest"
+          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "latest=${IMAGE_LATEST}" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Container with Buildx
+        id: build-push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.latest }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy Container to Google Cloud Run
+        id: deploy-run
+        shell: bash
+        env:
+          RAW_ENV_VARS: ${{ inputs.env-vars }}
+          RAW_SECRETS: ${{ inputs.secrets }}
+        run: |
+          DEPLOY_ARGS=(
+            "${{ inputs.service-name }}"
+            "--image=${{ steps.meta.outputs.tag }}"
+            "--region=${{ inputs.region }}"
+            "--port=${{ inputs.port }}"
+            "--memory=${{ inputs.memory }}"
+            "--cpu=${{ inputs.cpu }}"
+            "--min-instances=${{ inputs.min-instances }}"
+            "--max-instances=${{ inputs.max-instances }}"
+            "--concurrency=${{ inputs.concurrency }}"
+            "--quiet"
+          )
+
+          if [ "${{ inputs.cpu-boost }}" = "true" ]; then
+            DEPLOY_ARGS+=("--cpu-boost")
+          fi
+
+          if [ "${{ inputs.cpu-throttling }}" = "true" ]; then
+            DEPLOY_ARGS+=("--cpu-throttling")
+          else
+            DEPLOY_ARGS+=("--no-cpu-throttling")
+          fi
+
+          if [ "${{ inputs.allow-unauthenticated }}" = "true" ]; then
+            DEPLOY_ARGS+=("--allow-unauthenticated")
+          else
+            DEPLOY_ARGS+=("--no-allow-unauthenticated")
+          fi
+
+          # Format and attach environment variables safely with ^;;^ delimiter
+          if [ -n "$RAW_ENV_VARS" ]; then
+            FORMATTED_ENV=$(python3 -c "import os; raw = os.environ.get('RAW_ENV_VARS', ''); lines = [l.strip() for l in raw.splitlines() if l.strip()]; print('^;;^' + ';;'.join(lines)) if lines else None")
+            if [ -n "$FORMATTED_ENV" ] && [ "$FORMATTED_ENV" != "None" ]; then
+              DEPLOY_ARGS+=("--set-env-vars=${FORMATTED_ENV}")
+            fi
+          fi
+
+          # Format and attach Google Secret Manager bindings safely
+          if [ -n "$RAW_SECRETS" ]; then
+            FORMATTED_SECRETS=$(python3 -c "import os; raw = os.environ.get('RAW_SECRETS', ''); lines = [l.strip() for l in raw.splitlines() if l.strip()]; print('^;;^' + ';;'.join(lines)) if lines else None")
+            if [ -n "$FORMATTED_SECRETS" ] && [ "$FORMATTED_SECRETS" != "None" ]; then
+              DEPLOY_ARGS+=("--set-secrets=${FORMATTED_SECRETS}")
+            fi
+          fi
+
+          echo "Executing: gcloud run deploy ${DEPLOY_ARGS[0]} [options...]"
+          gcloud run deploy "${DEPLOY_ARGS[@]}"
+
+          # Extract service URL
+          SERVICE_URL=$(gcloud run services describe "${{ inputs.service-name }}" --region="${{ inputs.region }}" --format="value(status.url)")
+          echo "url=${SERVICE_URL}" >> $GITHUB_OUTPUT
+          echo "Successfully deployed to: ${SERVICE_URL}"
