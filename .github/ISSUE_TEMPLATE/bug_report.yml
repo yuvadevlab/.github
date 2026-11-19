@@ -15,12 +15,12 @@ body:
       options:
         - "devlab-portal (Web / API)"
         - "devlab-shared (@yuva-devlab/* packages)"
-        - "finai"
-        - "orchestrai"
+        - "fin-ai"
+        - "orchestr-ai"
         - "devlab-logs"
-        - "vitalai"
+        - "knowledg-ai (Planned)"
         - "devlab-guard"
-        - "incidentai"
+        - "incident-ai"
         - "devlab-ops (CLI / Operations)"
         - "Ecosystem / Cross-Cutting"
     validations:

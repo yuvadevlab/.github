@@ -8,12 +8,12 @@ The Yuva DevLab ecosystem continuously deploys updates to actively maintained br
 | --------------- | ------------------ |
 | `devlab-portal` | :white_check_mark: |
 | `devlab-shared` | :white_check_mark: |
-| `finai`         | :white_check_mark: |
-| `orchestrai`    | :white_check_mark: |
+| `fin-ai`         | :white_check_mark: |
+| `orchestr-ai`    | :white_check_mark: |
 | `devlab-logs`   | :white_check_mark: |
-| `vitalai`       | :white_check_mark: |
+| `knowledg-ai`   | :white_check_mark: |
 | `devlab-guard`  | :white_check_mark: |
-| `incidentai`    | :white_check_mark: |
+| `incident-ai`    | :white_check_mark: |
 
 ## Reporting a Vulnerability
 

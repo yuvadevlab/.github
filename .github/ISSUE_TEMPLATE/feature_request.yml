@@ -15,12 +15,12 @@ body:
       options:
         - "devlab-portal (Central Control Plane / Web Console)"
         - "devlab-shared (Design System / SDK / Core Packages)"
-        - "finai"
-        - "orchestrai"
+        - "fin-ai"
+        - "orchestr-ai"
         - "devlab-logs"
-        - "vitalai"
+        - "knowledg-ai (Planned)"
         - "devlab-guard"
-        - "incidentai"
+        - "incident-ai"
         - "devlab-ops (Operational CLI & Runner)"
         - "Cross-Cutting Ecosystem Feature"
     validations:

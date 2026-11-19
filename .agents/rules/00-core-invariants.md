@@ -59,3 +59,24 @@ The Yuva DevLab ecosystem is polyglot by design and extensible to any language, 
   `<type>(<optional-scope>): <imperative summary>`
 - Permitted types: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `ci`, `chore`, `revert`.
 - Imperative tense, lowercase first letter, no trailing period, max 72 characters.
+
+---
+
+## Invariant 7: Enums Over Raw Unions & Centralized Route/Query Keys
+
+- Avoid declaring types as raw string literal unions (`"dev" | "prod"`). Always declare TypeScript `enum`s or `as const` object dictionaries.
+- Never hardcode raw URL query parameters, route paths, HTTP headers, or storage keys; declare them centrally and build URLs with `URLSearchParams`.
+
+---
+
+## Invariant 8: Shared NPM Packages Environment Isolation
+
+- Shared NPM packages (`@yuva-devlab/*`) must NEVER read `process.env` directly. Consumers pass parameters explicitly.
+
+---
+
+## Invariant 9: Semantic Component Architecture & 90/10 Hybrid Styling Standard
+
+- UI components must declare purpose-revealing semantic classes (`.dl-card`, `.app-card`, `.dl-table`) in domain-scoped modular stylesheets (`< 200 lines`, strictly `< 250 lines`) under `@layer dl-components`.
+- Multi-class utility soup in JSX (`className="class-1 class-2 class-3..."`) is strictly prohibited; utilities are reserved exclusively for macro layout orchestration (10% glue).
+- Variations and themes must be parameterized via CSS variables mapped to `@yuva-devlab/tokens`.
