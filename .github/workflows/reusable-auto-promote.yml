@@ -1,0 +1,36 @@
+name: "Reusable Auto Promote (dev ➔ main)"
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js runtime version"
+        required: false
+        type: string
+        default: "22"
+    secrets:
+      AUTO_PR_PAT:
+        description: "Personal Access Token with repo and PR write permissions"
+        required: false
+
+jobs:
+  promote:
+    name: "Sync dev to main (Create or Update PR)"
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (!contains(github.event.head_commit.message, 'sync/main-to-dev') &&
+       !contains(github.event.head_commit.message, 'reverse merge main into dev') &&
+       !contains(github.event.head_commit.message, 'chore(sync):'))
+
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.AUTO_PR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Auto Promote dev to main
+        uses: yuvadevlab/.github/.github/actions/auto-promote@main
+        with:
+          token: ${{ secrets.AUTO_PR_PAT || secrets.GITHUB_TOKEN }}

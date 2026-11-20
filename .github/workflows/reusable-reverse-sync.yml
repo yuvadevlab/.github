@@ -1,0 +1,80 @@
+name: "Reusable Reverse Sync (main ➔ dev)"
+
+on:
+  workflow_call:
+    inputs:
+      base-branch:
+        description: "Target branch that receives sync (defaults to dev)"
+        required: false
+        type: string
+        default: "dev"
+      source-branch:
+        description: "Source branch that was updated (defaults to main)"
+        required: false
+        type: string
+        default: "main"
+      sync-branch:
+        description: "Temporary branch for sync PR"
+        required: false
+        type: string
+        default: "sync/main-to-dev"
+    secrets:
+      AUTO_PR_PAT:
+        description: "Personal Access Token with PR creation permissions"
+        required: false
+
+jobs:
+  sync-main-to-dev:
+    name: "Create Sync PR to ${{ inputs.base-branch }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.AUTO_PR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: 🔀 Create or Update Sync PR
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_PR_PAT || secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ inputs.base-branch }}
+          SOURCE_BRANCH: ${{ inputs.source-branch }}
+          SYNC_BRANCH: ${{ inputs.sync-branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if ! git ls-remote --exit-code --heads origin "$BASE_BRANCH" > /dev/null 2>&1; then
+            echo "ℹ️ Branch '$BASE_BRANCH' does not exist on origin. Creating from '$SOURCE_BRANCH'..."
+            git push origin "origin/$SOURCE_BRANCH:refs/heads/$BASE_BRANCH"
+          fi
+
+          git fetch origin "$BASE_BRANCH" "$SOURCE_BRANCH"
+
+          BEHIND_COUNT=$(git rev-list --count "origin/$BASE_BRANCH..origin/$SOURCE_BRANCH")
+          echo "Commits in $SOURCE_BRANCH not in $BASE_BRANCH: $BEHIND_COUNT"
+
+          if [ "$BEHIND_COUNT" -eq 0 ]; then
+            echo "✅ $BASE_BRANCH is already up to date with $SOURCE_BRANCH. No PR needed."
+            exit 0
+          fi
+
+          echo "🚀 Pushing $SOURCE_BRANCH commits to $SYNC_BRANCH branch..."
+          git checkout -B "$SYNC_BRANCH" "origin/$SOURCE_BRANCH"
+          git push origin "$SYNC_BRANCH" --force
+
+          EXISTING_PR=$(gh pr list --base "$BASE_BRANCH" --head "$SYNC_BRANCH" --state open --json number -q '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "ℹ️ Pull request #$EXISTING_PR is already open and updated."
+          else
+            echo "📝 Creating new reverse sync pull request..."
+            gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$SYNC_BRANCH" \
+              --title "chore(sync): reverse merge $SOURCE_BRANCH into $BASE_BRANCH" \
+              --body "Automated PR to sync commits from \`$SOURCE_BRANCH\` back into \`$BASE_BRANCH\`."
+          fi
