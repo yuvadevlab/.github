@@ -1,0 +1,21 @@
+name: "Auto Promote (dev ➔ main)"
+description: "Automatically creates or updates a promotion PR from dev to main with conventional commit summaries and changelog groupings"
+inputs:
+  token:
+    description: "GitHub Token or PAT with repo and pull_request write permissions"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: 🛠️ Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: 🚀 Run Promotion Engine
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: node "${{ github.action_path }}/promote-dev-to-main.mjs"
