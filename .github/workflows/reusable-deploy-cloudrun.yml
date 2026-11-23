@@ -149,7 +149,7 @@ jobs:
 
       - name: Build and Push Container with Buildx
         id: build-push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
