@@ -203,6 +203,8 @@ async function main() {
     if (arr.length > 0) existing = arr[0];
   } catch {}
 
+  let prNumber = existing?.number ?? null;
+
   try {
     if (existing) {
       console.log(`🔄 Updating existing PR #${existing.number} (${existing.url})...`);
@@ -216,6 +218,37 @@ async function main() {
         `gh pr create --base main --head dev --title "${prTitle}" --body-file "${tmpPath}"`,
       );
       console.log(`✅ Created PR: ${res}`);
+      const match = res.match(/\/pull\/(\d+)/);
+      if (match) prNumber = Number(match[1]);
+    }
+
+    // Ensure 'dev' is up to date with 'main' so the promotion PR is not blocked as BEHIND
+    if (prNumber) {
+      const behindCount = Number(exec("git rev-list --count origin/dev..origin/main") || "0");
+      if (behindCount > 0) {
+        console.log(
+          `🔄 'dev' is ${behindCount} commit(s) behind 'main'. Attempting to update PR #${prNumber}...`,
+        );
+        try {
+          exec(`gh api -X PUT repos/:owner/:repo/pulls/${prNumber}/update-branch`);
+          console.log(`✅ Updated PR #${prNumber} branch from 'main'`);
+        } catch {
+          console.log(
+            "ℹ️ Direct update-branch blocked by branch protection; opening/updating sync/main-to-dev PR...",
+          );
+          exec("git checkout -B sync/main-to-dev origin/main");
+          exec("git push origin sync/main-to-dev --force");
+          const existingSync = JSON.parse(
+            exec("gh pr list --base dev --head sync/main-to-dev --state open --json number") ||
+              "[]",
+          );
+          if (existingSync.length === 0) {
+            exec(
+              'gh pr create --base dev --head sync/main-to-dev --title "chore(sync): reverse merge main into dev" --body "Automated PR to sync commits from `main` back into `dev` so promotion PR can merge."',
+            );
+          }
+        }
+      }
     }
   } finally {
     try {
